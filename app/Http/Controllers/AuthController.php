@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -19,19 +20,37 @@ class AuthController extends Controller
         $user = User::create([
             'fullName' => $validated['fullName'],
             'email' => $validated['email'],
-            'password' => $validated['password'], // auto-hashed by model
+            'password' => $validated['password'], // auto-hashed
             'role' => $validated['role'],
             'isActive' => true,
         ]);
 
         return response()->json([
             'message' => 'User registered successfully',
-            'user' => [
-                'id' => $user->id,
-                'fullName' => $user->fullName,
-                'email' => $user->email,
-                'role' => $user->role,
-            ]
+            'user' => $user
         ], 201);
+    }
+
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|string',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['error' => 'Email does not exist'], 404);
+        }
+
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json(['error' => 'Incorrect password'], 401);
+        }
+
+        return response()->json([
+            'message' => 'Login successful',
+            'user' => $user
+        ]);
     }
 }

@@ -9,11 +9,9 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 
-
-// Test route
 Route::get('/testt', function () {
     return response()->json(['message' => 'API works!']);
 });
 
-// Auth routes
 Route::post('/signup', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
