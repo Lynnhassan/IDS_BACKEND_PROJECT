@@ -48,8 +48,12 @@ class AuthController extends Controller
             return response()->json(['error' => 'Incorrect password'], 401);
         }
 
+        // ✅ CREATE SANCTUM TOKEN
+        $token = $user->createToken('auth_token')->plainTextToken;
+
         return response()->json([
             'message' => 'Login successful',
+            'token' => $token,   // add THIS WAS MISSING
             'user' => $user
         ]);
     }

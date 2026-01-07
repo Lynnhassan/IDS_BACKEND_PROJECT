@@ -11,8 +11,8 @@ class Course extends Model
         'shortDescription',
         'longDescription',
         'category',
-'difficulty',
-'thumbnail',
+        'difficulty',
+        'thumbnail',
         'instructorId',
 'isPublished'
     ];
