@@ -11,4 +11,13 @@ class LessonCompletion extends Model
         'userId',          // ✅ Changed
         'completionDate'   // ✅ Added (if keeping this field)
     ];
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'userId');
+    }
+
+    public function lesson()
+    {
+        return $this->belongsTo(Lesson::class, 'lessonId');
+    }
 }

@@ -40,5 +40,35 @@ class Course extends Model
     {
         return $this->hasMany(Certificate::class, 'courseId');
     }
+    /**
+     * Get all reviews for this course
+     */
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'courseId');
+    }
 
+    /**
+     * Get approved reviews only
+     */
+    public function approvedReviews()
+    {
+        return $this->hasMany(Review::class, 'courseId')->where('isApproved', true);
+    }
+
+    /**
+     * Get average rating
+     */
+    public function averageRating()
+    {
+        return $this->approvedReviews()->avg('rating');
+    }
+
+    /**
+     * Get total review count
+     */
+    public function reviewCount()
+    {
+        return $this->approvedReviews()->count();
+    }
 }

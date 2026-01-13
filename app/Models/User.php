@@ -34,7 +34,10 @@ class User extends Authenticatable
     }
 
     // ================= RELATIONSHIPS =================
-
+    public function lessonCompletions()
+    {
+        return $this->hasMany(LessonCompletion::class, 'userId');
+    }
     public function coursesTaught()
     {
         return $this->hasMany(Course::class, 'instructorId');
@@ -63,5 +66,12 @@ class User extends Authenticatable
             'userId',
             'courseId'
         );
+    }
+    /**
+     * Get all reviews written by this user
+     */
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'userId');
     }
 }
