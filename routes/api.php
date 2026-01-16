@@ -3,12 +3,15 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\InstructorCourseController;
 use App\Http\Controllers\InstructorLessonController;
+use App\Http\Controllers\InstructorQuizQuestionController;
 use App\Http\Controllers\StudentDashboardController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\InstructorDashboardController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\InstructorQuizController;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\InstructorAccountController;
 // Quick test route
 Route::get('/testt', function () {
     return response()->json(['message' => 'API works!']);
@@ -27,11 +30,22 @@ Route::middleware('auth:sanctum')->prefix('instructor')->group(function () {
     Route::get('/courses', [InstructorCourseController::class, 'index']);
     Route::get('/courses/{course}', [InstructorCourseController::class, 'show']);
     Route::get('/dashboard/stats', [InstructorDashboardController::class, 'stats']);
+    Route::get('/account', [InstructorAccountController::class, 'show']);
+    Route::put('/account/password', [InstructorAccountController::class, 'updatePassword']);
+
+    Route::get('/courses/{courseId}/quizzes', [InstructorQuizController::class, 'index']);
+    Route::post('/courses/{courseId}/quizzes', [InstructorQuizController::class, 'store']);
+
+
+
+    Route::get('/courses/{courseId}/quizzes/{quizId}/questions', [InstructorQuizQuestionController::class, 'index']);
+    Route::post('/courses/{courseId}/quizzes/{quizId}/questions', [InstructorQuizQuestionController::class, 'store']);
 
     Route::put('/courses/{course}', [InstructorCourseController::class, 'update']);
-    Route::patch('/courses/{course}', [InstructorCourseController::class, 'update']);
+    Route::post('/courses/{course}', [InstructorCourseController::class, 'update']);
     Route::get('/courses/{course}/lessons', [InstructorLessonController::class, 'index']);
     Route::post('/courses/{course}/lessons', [InstructorLessonController::class, 'store']);
+
 });
 //Route::middleware('auth:sanctum')->get('/student/test', function () {
 //    return response()->json([
