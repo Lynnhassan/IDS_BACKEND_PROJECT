@@ -5,13 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage; // ✅ IMPORTANT (you were missing this)
 use Illuminate\Validation\Rule;
 
 class InstructorCourseController extends Controller
 {
-
-
-
+    // PUT/POST /api/instructor/courses/{course}
     public function update(Request $request, Course $course)
     {
         $user = Auth::user();
@@ -24,6 +23,7 @@ class InstructorCourseController extends Controller
             return response()->json(['error' => 'Forbidden'], 403);
         }
 
+        // ✅ Fix boolean issue: accept 0/1 instead of boolean strings from FormData
         $validated = $request->validate([
             'title' => 'required|string|max:100',
             'shortDescription' => 'required|string|max:150',
@@ -31,8 +31,29 @@ class InstructorCourseController extends Controller
             'category' => 'required|string|max:100',
             'difficulty' => ['required', Rule::in(['Easy', 'Medium', 'Hard'])],
             'thumbnail' => 'nullable|string|max:255',
-            'isPublished' => 'nullable|boolean',
+
+            // ✅ IMPORTANT: use in:0,1 not boolean (FormData sends strings)
+            'isPublished' => 'nullable|in:0,1',
+
+            'pdf' => 'nullable|file|mimes:pdf|max:10240',
+            'remove_pdf' => 'nullable|in:0,1',
         ]);
+
+        // ✅ remove old pdf if requested
+        if ($request->input('remove_pdf') == '1') {
+            if ($course->pdf) {
+                Storage::disk('public')->delete($course->pdf);
+            }
+            $validated['pdf'] = null;
+        }
+
+        // ✅ upload new pdf (replaces old)
+        if ($request->hasFile('pdf')) {
+            if ($course->pdf) {
+                Storage::disk('public')->delete($course->pdf);
+            }
+            $validated['pdf'] = $request->file('pdf')->store('course_pdfs', 'public');
+        }
 
         $course->update($validated);
 
@@ -70,11 +91,18 @@ class InstructorCourseController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:100'],
             'shortDescription' => ['required', 'string', 'max:150'],
-            'longDescription' => ['required', 'string', 'max:100'],
+            'longDescription' => ['required', 'string'],
             'category' => ['required', 'string'],
             'difficulty' => ['required', Rule::in(['Easy', 'Medium', 'Hard'])],
-            'thumbnail' => ['nullable', 'string'],
+            'thumbnail' => ['nullable', 'string', 'max:255'],
+            'pdf' => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
         ]);
+
+        $pdfPath = null;
+
+        if ($request->hasFile('pdf')) {
+            $pdfPath = $request->file('pdf')->store('course_pdfs', 'public');
+        }
 
         $course = Course::create([
             'title' => $validated['title'],
@@ -83,13 +111,13 @@ class InstructorCourseController extends Controller
             'category' => $validated['category'],
             'difficulty' => $validated['difficulty'],
             'thumbnail' => $validated['thumbnail'] ?? null,
+            'pdf' => $pdfPath,
             'instructorId' => $user->id,
-            'isPublished' => false,
+            'isPublished' => 0,
         ]);
 
         return response()->json([
-            'id' => $course->id,
-            'course' => $course
+            'data' => $course
         ], 201);
     }
 
@@ -106,12 +134,10 @@ class InstructorCourseController extends Controller
             return response()->json(['error' => 'Forbidden'], 403);
         }
 
-        // ✅ include lessons ordered
         $course->load(['lessons' => function ($q) {
             $q->orderBy('order');
         }]);
 
         return response()->json($course);
     }
-
 }

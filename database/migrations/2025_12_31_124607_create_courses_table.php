@@ -21,6 +21,8 @@ return new class extends Migration
             $table->enum('difficulty', ['Easy', 'Medium', 'Hard']);
             $table->string('thumbnail', 100)->nullable();
 
+            $table->string('pdf', 255)->nullable(); // ana zedet this for pdf
+
             $table->foreignId('instructorId')
                 ->constrained('users')
                 ->cascadeOnDelete();

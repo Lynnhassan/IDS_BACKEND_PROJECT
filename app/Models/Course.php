@@ -13,6 +13,7 @@ class Course extends Model
         'category',
         'difficulty',
         'thumbnail',
+        'pdf', //added here also
         'instructorId',
 'isPublished'
     ];
@@ -71,4 +72,6 @@ class Course extends Model
     {
         return $this->approvedReviews()->count();
     }
+
+
 }
