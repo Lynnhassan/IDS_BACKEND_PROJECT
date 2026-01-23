@@ -62,15 +62,12 @@ class Course extends Model
      */
     public function averageRating()
     {
-        return $this->approvedReviews()->avg('rating');
+        return $this->reviews()->avg('rating');  // Remove ->where('isApproved', true)
     }
 
-    /**
-     * Get total review count
-     */
     public function reviewCount()
     {
-        return $this->approvedReviews()->count();
+        return $this->reviews()->count();  // Remove ->where('isApproved', true)
     }
 
 

@@ -14,12 +14,10 @@ class Review extends Model
         'courseId',
         'rating',
         'comment',
-
     ];
 
     protected $casts = [
         'rating' => 'integer',
-  
         'created_at' => 'datetime',
         'updated_at' => 'datetime'
     ];
@@ -32,20 +30,9 @@ class Review extends Model
         return $this->belongsTo(User::class, 'userId');
     }
 
-    /**
-     * Get the course being reviewed
-     */
     public function course()
     {
         return $this->belongsTo(Course::class, 'courseId');
-    }
-
-    /**
-     * Scope to get only approved reviews
-     */
-    public function scopeApproved($query)
-    {
-        return $query->where('isApproved', true);
     }
 
     /**

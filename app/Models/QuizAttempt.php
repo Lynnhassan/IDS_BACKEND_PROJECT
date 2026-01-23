@@ -6,12 +6,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class QuizAttempt extends Model
 {
-    protected $fillable=[
+    protected $fillable = [
         'quizId',
         'userId',
-'score',
+        'score',
         'attemptDate'
     ];
+
+    // ✅ ADD THIS - Cast attemptDate to Carbon instance
+    protected $casts = [
+        'attemptDate' => 'datetime',
+        'score' => 'float'
+    ];
+
     public function quiz()
     {
         return $this->belongsTo(Quiz::class, 'quizId');
@@ -21,5 +28,4 @@ class QuizAttempt extends Model
     {
         return $this->belongsTo(User::class, 'userId');
     }
-
 }

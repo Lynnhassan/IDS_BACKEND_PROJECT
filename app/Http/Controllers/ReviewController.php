@@ -8,6 +8,7 @@ use App\Models\Course;
 use App\Models\Enrollment;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class ReviewController extends Controller
 {
@@ -17,17 +18,18 @@ class ReviewController extends Controller
     public function getCourseReviews($courseId)
     {
         try {
+            Log::info('Fetching reviews for course: ' . $courseId);
+
             $course = Course::findOrFail($courseId);
 
             $reviews = Review::where('courseId', $courseId)
-                ->where('isApproved', true)
-                ->with('user:id,fullName')
+                ->with('user:id,fullName') // ✅ FIXED: Changed to fullName
                 ->orderBy('created_at', 'desc')
                 ->get()
                 ->map(function ($review) {
                     return [
                         'id' => $review->id,
-                        'userName' => $review->user->fullName ?? 'Anonymous',
+                        'userName' => $review->user->fullName ?? 'Anonymous', // ✅ FIXED: Changed to fullName
                         'rating' => $review->rating,
                         'comment' => $review->comment,
                         'createdAt' => $review->created_at->format('M d, Y'),
@@ -35,8 +37,14 @@ class ReviewController extends Controller
                     ];
                 });
 
+            // Use the methods from Course model
             $averageRating = $course->averageRating() ?? 0;
             $totalReviews = $course->reviewCount() ?? 0;
+
+            Log::info('Reviews fetched successfully', [
+                'count' => $totalReviews,
+                'average' => $averageRating
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -46,10 +54,13 @@ class ReviewController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            Log::error('Error fetching reviews: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+
             return response()->json([
                 'success' => false,
                 'error' => 'Failed to fetch reviews',
-                'message' => $e->getMessage()
+                'message' => config('app.debug') ? $e->getMessage() : 'Server error'
             ], 500);
         }
     }
@@ -63,7 +74,10 @@ class ReviewController extends Controller
             $user = Auth::user();
 
             if (!$user) {
-                return response()->json(['error' => 'Unauthorized'], 401);
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Unauthorized'
+                ], 401);
             }
 
             $validator = Validator::make($request->all(), [
@@ -104,6 +118,8 @@ class ReviewController extends Controller
                     'comment' => $request->comment
                 ]);
 
+                Log::info('Review updated', ['reviewId' => $existingReview->id]);
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Review updated successfully',
@@ -116,9 +132,10 @@ class ReviewController extends Controller
                 'userId' => $user->id,
                 'courseId' => $request->courseId,
                 'rating' => $request->rating,
-                'comment' => $request->comment,
-                'isApproved' => true
+                'comment' => $request->comment
             ]);
+
+            Log::info('Review created', ['reviewId' => $review->id]);
 
             return response()->json([
                 'success' => true,
@@ -127,10 +144,12 @@ class ReviewController extends Controller
             ], 201);
 
         } catch (\Exception $e) {
+            Log::error('Error submitting review: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
                 'error' => 'Failed to submit review',
-                'message' => $e->getMessage()
+                'message' => config('app.debug') ? $e->getMessage() : 'Server error'
             ], 500);
         }
     }
@@ -144,7 +163,10 @@ class ReviewController extends Controller
             $user = Auth::user();
 
             if (!$user) {
-                return response()->json(['error' => 'Unauthorized'], 401);
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Unauthorized'
+                ], 401);
             }
 
             $review = Review::where('userId', $user->id)
@@ -158,9 +180,12 @@ class ReviewController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            Log::error('Error checking review status: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
-                'error' => 'Failed to check review status'
+                'error' => 'Failed to check review status',
+                'message' => config('app.debug') ? $e->getMessage() : 'Server error'
             ], 500);
         }
     }
@@ -174,7 +199,10 @@ class ReviewController extends Controller
             $user = Auth::user();
 
             if (!$user) {
-                return response()->json(['error' => 'Unauthorized'], 401);
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Unauthorized'
+                ], 401);
             }
 
             $review = Review::findOrFail($reviewId);
@@ -189,15 +217,20 @@ class ReviewController extends Controller
 
             $review->delete();
 
+            Log::info('Review deleted', ['reviewId' => $reviewId]);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Review deleted successfully'
             ]);
 
         } catch (\Exception $e) {
+            Log::error('Error deleting review: ' . $e->getMessage());
+
             return response()->json([
                 'success' => false,
-                'error' => 'Failed to delete review'
+                'error' => 'Failed to delete review',
+                'message' => config('app.debug') ? $e->getMessage() : 'Server error'
             ], 500);
         }
     }

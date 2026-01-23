@@ -16,9 +16,15 @@ return new class extends Migration
             $table->foreignId('courseId')->constrained('courses')->onDelete('cascade');
             $table->foreignId('userId')->constrained('users')->onDelete('cascade');
 
-            $table->dateTime('generatedDate');
-            $table->string('verificationCode');
+            $table->dateTime('generatedDate')->useCurrent();
+
+            // CRITICAL: Make verification code unique!
+            $table->string('verificationCode')->unique();
+
             $table->timestamps();
+
+            // IMPORTANT: Prevent duplicate certificates for same user+course
+            $table->unique(['userId', 'courseId']);
         });
     }
 
