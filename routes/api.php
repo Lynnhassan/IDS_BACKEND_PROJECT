@@ -14,7 +14,8 @@ use App\Http\Controllers\StudentQuizController;
 use App\Http\Controllers\StudentCertificateController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\InstructorAccountController;
-
+use App\Http\Controllers\AiQuizController;
+use App\Http\Controllers\AiSummarizeController;
 // Test route
 Route::get('/testt', function () {
     return response()->json(['message' => 'API works!']);
@@ -103,8 +104,12 @@ Route::middleware('auth:sanctum')->prefix('student')->group(function () {
     Route::get('/certificates/{certificate}/qr-code', [StudentCertificateController::class, 'downloadQrCode'])
         ->name('certificates.qr-code');
 });
-
+// The frontend will call this to get AI suggestions
+Route::get('/courses/{id}/generate-quiz', [AiQuizController::class, 'suggest']);
+Route::post('/instructor/courses/{course}/quizzes/{quiz}/questions/bulk', [AiQuizController::class, 'bulkSaveQuestions']);
+// The frontend will call this to save the "Accepted" questions
+Route::post('/courses/{id}/save-quiz', [AiQuizController::class, 'store']);
 // Public routes
 Route::get('/reviews/course/{courseId}', [ReviewController::class, 'getCourseReviews']);
 
-
+Route::get('/student/course/{courseId}/summary', [AiSummarizeController::class, 'getSummary']);
