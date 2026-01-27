@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminCoursesController;
+
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\InstructorCourseController;
 use App\Http\Controllers\InstructorLessonController;
@@ -15,6 +16,8 @@ use App\Http\Controllers\StudentQuizController;
 use App\Http\Controllers\StudentCertificateController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\InstructorAccountController;
+use App\Http\Controllers\AiQuizController;
+use App\Http\Controllers\AiSummarizeController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminUsersController;
 
@@ -108,7 +111,11 @@ Route::middleware('auth:sanctum')->prefix('student')->group(function () {
     Route::get('/certificates/{certificate}/qr-code', [StudentCertificateController::class, 'downloadQrCode'])
         ->name('certificates.qr-code');
 });
-
+// The frontend will call this to get AI suggestions
+Route::get('/courses/{id}/generate-quiz', [AiQuizController::class, 'suggest']);
+Route::post('/instructor/courses/{course}/quizzes/{quiz}/questions/bulk', [AiQuizController::class, 'bulkSaveQuestions']);
+// The frontend will call this to save the "Accepted" questions
+Route::post('/courses/{id}/save-quiz', [AiQuizController::class, 'store']);
 // Public routes
 Route::get('/reviews/course/{courseId}', [ReviewController::class, 'getCourseReviews']);
 
@@ -130,3 +137,4 @@ Route::middleware('auth:sanctum')->post('/logout', function (Request $request) {
         'message' => 'Logged out successfully'
     ]);
 });
+Route::get('/student/course/{courseId}/summary', [AiSummarizeController::class, 'getSummary']);
