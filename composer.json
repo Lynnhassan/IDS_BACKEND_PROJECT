@@ -15,7 +15,7 @@
         "openai-php/client": "^0.18.0",
         "openai-php/laravel": "^0.18.0",
         "simplesoftwareio/simple-qrcode": "^4.2",
-        "smalot/pdfparser": "^2.12"
+        "smalot/pdfparser": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

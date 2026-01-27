@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminCoursesController;
+
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\InstructorCourseController;
 use App\Http\Controllers\InstructorLessonController;
@@ -16,6 +18,11 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\InstructorAccountController;
 use App\Http\Controllers\AiQuizController;
 use App\Http\Controllers\AiSummarizeController;
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminUsersController;
+
+
+
 // Test route
 Route::get('/testt', function () {
     return response()->json(['message' => 'API works!']);
@@ -112,4 +119,22 @@ Route::post('/courses/{id}/save-quiz', [AiQuizController::class, 'store']);
 // Public routes
 Route::get('/reviews/course/{courseId}', [ReviewController::class, 'getCourseReviews']);
 
+
+Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+    Route::get('/dashboard', [AdminDashboardController::class, 'dashboard']);
+    Route::get('/users', [AdminUsersController::class, 'index']);
+    Route::put('/users/{user}', [AdminUsersController::class, 'update']); // change role / isActive
+    // Courses
+    Route::get('/courses', [AdminCoursesController::class, 'index']);
+    Route::put('/courses/{course}', [AdminCoursesController::class, 'update']); // publish/unpublish
+});
+
+
+Route::middleware('auth:sanctum')->post('/logout', function (Request $request) {
+    $request->user()->currentAccessToken()->delete();
+
+    return response()->json([
+        'message' => 'Logged out successfully'
+    ]);
+});
 Route::get('/student/course/{courseId}/summary', [AiSummarizeController::class, 'getSummary']);
